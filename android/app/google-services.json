@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "268520308199",
+    "project_id": "saveflow-84a30",
+    "storage_bucket": "saveflow-84a30.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268520308199:android:4375a6868f4c6281171142",
+        "android_client_info": {
+          "package_name": "com.example.save_flow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWz4awCqvvssAV8XMRJ0ZkxV3uz7LP4Eo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
