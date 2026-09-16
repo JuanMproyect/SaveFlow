@@ -11,6 +11,7 @@ import 'screens/chatbot/chatbot_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'ux/theme.dart';
 import 'ux/widgets/nav_bar.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,7 @@ class SaveFlowApp extends StatelessWidget {
           theme: TemaSaveFlow.temaClaro,
           darkTheme: TemaSaveFlow.temaOscuro,
           themeMode: modoActual,
-          home: const PantallaInicial(),
+          home: const PantallaCarga(),
         );
       },
     );
