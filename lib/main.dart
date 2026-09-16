@@ -4,14 +4,12 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SaveFlowApp());
 }
 
 class SaveFlowApp extends StatelessWidget {
-  const SaveFlowApp ({super.key});
+  const SaveFlowApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +31,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SaveFlow Home'),
-      ),
+      appBar: AppBar(title: const Text('SaveFlow Home')),
       body: const Center(
         child: Text(
           '¡Firebase conectado y listo para programar!',
