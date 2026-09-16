@@ -1,0 +1,1 @@
+// Category chart widget.
