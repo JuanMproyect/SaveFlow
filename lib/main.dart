@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'services/auth_service.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/dashboard/dashboard_screen.dart';
+import 'screens/transactions/transaction_list_screen.dart';
+import 'screens/goals/goals_screen.dart';
+import 'screens/chatbot/chatbot_screen.dart';
+import 'screens/profile/profile_screen.dart';
+import 'ux/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -8,36 +17,104 @@ void main() async {
   runApp(const SaveFlowApp());
 }
 
+final ValueNotifier<ThemeMode> modoTemaGlobal = ValueNotifier(ThemeMode.light);
+
 class SaveFlowApp extends StatelessWidget {
   const SaveFlowApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SaveFlow',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        useMaterial3: true,
-      ),
-      home: const HomeScreen(),
+  Widget build(BuildContext contexto) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: modoTemaGlobal,
+      builder: (contexto, modoActual, _) {
+        return MaterialApp(
+          title: 'SaveFlow',
+          debugShowCheckedModeBanner: false,
+          theme: TemaSaveFlow.temaClaro,
+          darkTheme: TemaSaveFlow.temaOscuro,
+          themeMode: modoActual,
+          home: const PantallaInicial(),
+        );
+      },
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+// Decide si mostrar Login o la Navegación Principal según el estado de sesión
+class PantallaInicial extends StatelessWidget {
+  const PantallaInicial({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext contexto) {
+    final servicioAuth = ServicioAutenticacion();
+
+    return StreamBuilder<User?>(
+      stream: servicioAuth.estadoAutenticacion,
+      builder: (contexto, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return const PantallaNavegacionPrincipal();
+        }
+
+        return const PantallaInicioSesion();
+      },
+    );
+  }
+}
+
+// Contenedor con la barra de navegación inferior y las 5 pantallas principales
+class PantallaNavegacionPrincipal extends StatefulWidget {
+  const PantallaNavegacionPrincipal({super.key});
+
+  @override
+  State<PantallaNavegacionPrincipal> createState() =>
+      _EstadoPantallaNavegacionPrincipal();
+}
+
+class _EstadoPantallaNavegacionPrincipal
+    extends State<PantallaNavegacionPrincipal> {
+  int _indiceSeleccionado = 0;
+
+  final List<Widget> _pantallas = const [
+    PantallaDashboard(),
+    PantallaListaTransacciones(),
+    PantallaMetas(),
+    PantallaChatbot(),
+    PantallaPerfil(),
+  ];
+
+  @override
+  Widget build(BuildContext contexto) {
     return Scaffold(
-      appBar: AppBar(title: const Text('SaveFlow Home')),
-      body: const Center(
-        child: Text(
-          '¡Firebase conectado y listo para programar!',
-          style: TextStyle(fontSize: 18),
-          textAlign: TextAlign.center,
-        ),
+      body: _pantallas[_indiceSeleccionado],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _indiceSeleccionado,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Theme.of(contexto).colorScheme.primary,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.swap_horiz),
+            label: 'Transacciones',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Metas'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.smart_toy),
+            label: 'Chatbot',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+        ],
+        onTap: (indice) {
+          setState(() {
+            _indiceSeleccionado = indice;
+          });
+        },
       ),
     );
   }
