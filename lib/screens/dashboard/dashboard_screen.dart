@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/category_model.dart';
 import '../../models/transaction_model.dart';
@@ -7,8 +6,8 @@ import '../../models/summary_model.dart';
 import '../../services/category_service.dart';
 import '../../services/transaction_service.dart';
 import '../../services/dashboard_service.dart';
-import '../../services/auth_service.dart';
 import '../../core/formatters.dart';
+import '../../ux/widgets/category_chart.dart';
 
 class PantallaDashboard extends StatelessWidget {
   const PantallaDashboard({super.key});
@@ -74,7 +73,7 @@ class PantallaDashboard extends StatelessWidget {
                     const SizedBox(height: 12),
                     resumenMensual.gastosPorCategoria.isEmpty
                         ? const _SinDatosGrafica()
-                        : _GraficaGastos(
+                        : GraficaCategorias(
                             gastosPorCategoria:
                                 resumenMensual.gastosPorCategoria,
                             mapaCategorias: mapaCategorias,
@@ -217,87 +216,6 @@ class _SinDatosGrafica extends StatelessWidget {
         'Aún no hay gastos registrados este mes',
         style: TextStyle(color: Colors.grey),
       ),
-    );
-  }
-}
-
-// ── Gráfica de pastel con fl_chart ─────────────────────────────────────────
-class _GraficaGastos extends StatelessWidget {
-  final Map<String, double> gastosPorCategoria;
-  final Map<String, CategoriaModelo> mapaCategorias;
-
-  const _GraficaGastos({
-    required this.gastosPorCategoria,
-    required this.mapaCategorias,
-  });
-
-  @override
-  Widget build(BuildContext contexto) {
-    final totalGastos = gastosPorCategoria.values.fold(
-      0.0,
-      (suma, valor) => suma + valor,
-    );
-
-    // Ordenamos de mayor a menor para que la leyenda sea más legible
-    final entradasOrdenadas = gastosPorCategoria.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 200,
-          child: PieChart(
-            PieChartData(
-              sectionsSpace: 2,
-              centerSpaceRadius: 40,
-              sections: entradasOrdenadas.map((entrada) {
-                final categoria = mapaCategorias[entrada.key];
-                final porcentaje = (entrada.value / totalGastos) * 100;
-
-                return PieChartSectionData(
-                  value: entrada.value,
-                  color: categoria?.obtenerColor() ?? Colors.grey,
-                  title: '${porcentaje.toStringAsFixed(0)}%',
-                  radius: 60,
-                  titleStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Leyenda debajo de la gráfica
-        Column(
-          children: entradasOrdenadas.map((entrada) {
-            final categoria = mapaCategorias[entrada.key];
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: categoria?.obtenerColor() ?? Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(categoria?.nombre ?? 'Sin categoría')),
-                  Text(
-                    formatearMonto(entrada.value),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ],
     );
   }
 }

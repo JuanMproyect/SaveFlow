@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../ux/widgets/custom_button.dart';
+import '../../ux/widgets/custom_input.dart';
 
 class PantallaRegistro extends StatefulWidget {
   const PantallaRegistro({super.key});
@@ -58,29 +60,27 @@ class _EstadoPantallaRegistro extends State<PantallaRegistro> {
           key: _llaveFormulario,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _controladorNombre,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (valor) =>
+              CampoTexto(
+                controlador: _controladorNombre,
+                etiqueta: 'Nombre',
+                validador: (valor) =>
                     valor == null || valor.isEmpty ? 'Ingresa tu nombre' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _controladorCorreo,
-                decoration: const InputDecoration(
-                  labelText: 'Correo electrónico',
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (valor) => valor == null || !valor.contains('@')
+              CampoTexto(
+                controlador: _controladorCorreo,
+                etiqueta: 'Correo electrónico',
+                tipoTeclado: TextInputType.emailAddress,
+                validador: (valor) => valor == null || !valor.contains('@')
                     ? 'Correo inválido'
                     : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _controladorContrasena,
-                decoration: const InputDecoration(labelText: 'Contraseña'),
-                obscureText: true,
-                validator: (valor) => valor == null || valor.length < 6
+              CampoTexto(
+                controlador: _controladorContrasena,
+                etiqueta: 'Contraseña',
+                ocultarTexto: true,
+                validador: (valor) => valor == null || valor.length < 6
                     ? 'Mínimo 6 caracteres'
                     : null,
               ),
@@ -101,12 +101,11 @@ class _EstadoPantallaRegistro extends State<PantallaRegistro> {
               if (_mensajeError != null)
                 Text(_mensajeError!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 12),
-              _cargando
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _manejarRegistro,
-                      child: const Text('Registrarme'),
-                    ),
+              BotonPrincipal(
+                cargando: _cargando,
+                texto: 'Registrarme',
+                alPresionar: _manejarRegistro,
+              ),
             ],
           ),
         ),

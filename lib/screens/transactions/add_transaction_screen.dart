@@ -6,6 +6,8 @@ import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
 import '../../services/currency_service.dart';
 import '../../services/transaction_service.dart';
+import '../../ux/widgets/custom_button.dart';
+import '../../ux/widgets/custom_input.dart';
 
 class PantallaAgregarTransaccion extends StatefulWidget {
   const PantallaAgregarTransaccion({super.key});
@@ -110,14 +112,23 @@ class _EstadoPantallaAgregarTransaccion
               // Selector de tipo: Gasto / Ingreso
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'expense', label: Text('Gasto'), icon: Icon(Icons.arrow_downward)),
-                  ButtonSegment(value: 'income', label: Text('Ingreso'), icon: Icon(Icons.arrow_upward)),
+                  ButtonSegment(
+                    value: 'expense',
+                    label: Text('Gasto'),
+                    icon: Icon(Icons.arrow_downward),
+                  ),
+                  ButtonSegment(
+                    value: 'income',
+                    label: Text('Ingreso'),
+                    icon: Icon(Icons.arrow_upward),
+                  ),
                 ],
                 selected: {_tipoSeleccionado},
                 onSelectionChanged: (nuevaSeleccion) {
                   setState(() {
                     _tipoSeleccionado = nuevaSeleccion.first;
-                    _categoriaSeleccionada = null; // reinicia categoría al cambiar tipo
+                    _categoriaSeleccionada =
+                        null; // reinicia categoría al cambiar tipo
                   });
                 },
               ),
@@ -128,14 +139,19 @@ class _EstadoPantallaAgregarTransaccion
                 children: [
                   Expanded(
                     flex: 2,
-                    child: TextFormField(
-                      controller: _controladorMonto,
-                      decoration: const InputDecoration(labelText: 'Monto'),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (valor) {
-                        if (valor == null || valor.isEmpty) return 'Ingresa un monto';
-                        if (double.tryParse(valor) == null) return 'Monto inválido';
-                        if (double.parse(valor) <= 0) return 'Debe ser mayor a 0';
+                    child: CampoTexto(
+                      controlador: _controladorMonto,
+                      etiqueta: 'Monto',
+                      tipoTeclado: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      validador: (valor) {
+                        if (valor == null || valor.isEmpty)
+                          return 'Ingresa un monto';
+                        if (double.tryParse(valor) == null)
+                          return 'Monto inválido';
+                        if (double.parse(valor) <= 0)
+                          return 'Debe ser mayor a 0';
                         return null;
                       },
                     ),
@@ -146,9 +162,15 @@ class _EstadoPantallaAgregarTransaccion
                       value: _monedaSeleccionada,
                       decoration: const InputDecoration(labelText: 'Moneda'),
                       items: _monedasDisponibles
-                          .map((moneda) => DropdownMenuItem(value: moneda, child: Text(moneda)))
+                          .map(
+                            (moneda) => DropdownMenuItem(
+                              value: moneda,
+                              child: Text(moneda),
+                            ),
+                          )
                           .toList(),
-                      onChanged: (valor) => setState(() => _monedaSeleccionada = valor!),
+                      onChanged: (valor) =>
+                          setState(() => _monedaSeleccionada = valor!),
                     ),
                   ),
                 ],
@@ -173,27 +195,34 @@ class _EstadoPantallaAgregarTransaccion
                         : null,
                     decoration: const InputDecoration(labelText: 'Categoría'),
                     items: categoriasFiltradas
-                        .map((categoria) => DropdownMenuItem(
-                              value: categoria,
-                              child: Row(
-                                children: [
-                                  Icon(categoria.obtenerIcono(), size: 18, color: categoria.obtenerColor()),
-                                  const SizedBox(width: 8),
-                                  Text(categoria.nombre),
-                                ],
-                              ),
-                            ))
+                        .map(
+                          (categoria) => DropdownMenuItem(
+                            value: categoria,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  categoria.obtenerIcono(),
+                                  size: 18,
+                                  color: categoria.obtenerColor(),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(categoria.nombre),
+                              ],
+                            ),
+                          ),
+                        )
                         .toList(),
-                    onChanged: (valor) => setState(() => _categoriaSeleccionada = valor),
+                    onChanged: (valor) =>
+                        setState(() => _categoriaSeleccionada = valor),
                   );
                 },
               ),
               const SizedBox(height: 16),
 
               // Descripción
-              TextFormField(
-                controller: _controladorDescripcion,
-                decoration: const InputDecoration(labelText: 'Descripción (opcional)'),
+              CampoTexto(
+                controlador: _controladorDescripcion,
+                etiqueta: 'Descripción (opcional)',
               ),
               const SizedBox(height: 16),
 
@@ -215,12 +244,11 @@ class _EstadoPantallaAgregarTransaccion
                 Text(_mensajeError!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 12),
 
-              _guardando
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _guardarTransaccion,
-                      child: const Text('Guardar transacción'),
-                    ),
+              BotonPrincipal(
+                cargando: _guardando,
+                texto: 'Guardar transacción',
+                alPresionar: _guardarTransaccion,
+              ),
             ],
           ),
         ),

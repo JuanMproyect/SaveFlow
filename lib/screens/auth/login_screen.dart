@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../ux/widgets/custom_button.dart';
+import '../../ux/widgets/custom_input.dart';
 import 'register_screen.dart';
 
 class PantallaInicioSesion extends StatefulWidget {
@@ -32,7 +34,7 @@ class _EstadoPantallaInicioSesion extends State<PantallaInicioSesion> {
       contrasena: _controladorContrasena.text.trim(),
     );
 
-        setState(() => _cargando = false);
+    setState(() => _cargando = false);
 
     if (error != null) {
       setState(() => _mensajeError = error);
@@ -51,22 +53,20 @@ class _EstadoPantallaInicioSesion extends State<PantallaInicioSesion> {
           key: _llaveFormulario,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _controladorCorreo,
-                decoration: const InputDecoration(
-                  labelText: 'Correo electrónico',
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (valor) => valor == null || !valor.contains('@')
+              CampoTexto(
+                controlador: _controladorCorreo,
+                etiqueta: 'Correo electrónico',
+                tipoTeclado: TextInputType.emailAddress,
+                validador: (valor) => valor == null || !valor.contains('@')
                     ? 'Correo inválido'
                     : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _controladorContrasena,
-                decoration: const InputDecoration(labelText: 'Contraseña'),
-                obscureText: true,
-                validator: (valor) => valor == null || valor.isEmpty
+              CampoTexto(
+                controlador: _controladorContrasena,
+                etiqueta: 'Contraseña',
+                ocultarTexto: true,
+                validador: (valor) => valor == null || valor.isEmpty
                     ? 'Ingresa tu contraseña'
                     : null,
               ),
@@ -74,12 +74,11 @@ class _EstadoPantallaInicioSesion extends State<PantallaInicioSesion> {
               if (_mensajeError != null)
                 Text(_mensajeError!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 12),
-              _cargando
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _manejarInicioSesion,
-                      child: const Text('Entrar'),
-                    ),
+              BotonPrincipal(
+                cargando: _cargando,
+                texto: 'Entrar',
+                alPresionar: _manejarInicioSesion,
+              ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => Navigator.push(

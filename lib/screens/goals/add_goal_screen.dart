@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/goal_model.dart';
 import '../../services/goal_service.dart';
+import '../../ux/widgets/custom_button.dart';
+import '../../ux/widgets/custom_input.dart';
 
 class PantallaAgregarMeta extends StatefulWidget {
   const PantallaAgregarMeta({super.key});
@@ -92,13 +94,11 @@ class _EstadoPantallaAgregarMeta extends State<PantallaAgregarMeta> {
           key: _llaveFormulario,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _controladorNombre,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre de la meta',
-                  hintText: 'Ej: Refrigeradora nueva',
-                ),
-                validator: (valor) => valor == null || valor.trim().isEmpty
+              CampoTexto(
+                controlador: _controladorNombre,
+                etiqueta: 'Nombre de la meta',
+                textoAyuda: 'Ej: Refrigeradora nueva',
+                validador: (valor) => valor == null || valor.trim().isEmpty
                     ? 'Ingresa un nombre'
                     : null,
               ),
@@ -108,15 +108,13 @@ class _EstadoPantallaAgregarMeta extends State<PantallaAgregarMeta> {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: TextFormField(
-                      controller: _controladorMontoObjetivo,
-                      decoration: const InputDecoration(
-                        labelText: 'Monto objetivo',
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
+                    child: CampoTexto(
+                      controlador: _controladorMontoObjetivo,
+                      etiqueta: 'Monto objetivo',
+                      tipoTeclado: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      validator: (valor) {
+                      validador: (valor) {
                         if (valor == null || valor.isEmpty)
                           return 'Ingresa un monto';
                         final numero = double.tryParse(valor);
@@ -147,16 +145,14 @@ class _EstadoPantallaAgregarMeta extends State<PantallaAgregarMeta> {
               ),
               const SizedBox(height: 16),
 
-              TextFormField(
-                controller: _controladorMontoInicial,
-                decoration: const InputDecoration(
-                  labelText: 'Monto inicial (opcional)',
-                  hintText: 'Si ya tienes algo ahorrado',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
+              CampoTexto(
+                controlador: _controladorMontoInicial,
+                etiqueta: 'Monto inicial (opcional)',
+                textoAyuda: 'Si ya tienes algo ahorrado',
+                tipoTeclado: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                validator: (valor) {
+                validador: (valor) {
                   if (valor == null || valor.isEmpty) return null; // opcional
                   if (double.tryParse(valor) == null) return 'Monto inválido';
                   return null;
@@ -183,12 +179,11 @@ class _EstadoPantallaAgregarMeta extends State<PantallaAgregarMeta> {
                 Text(_mensajeError!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 12),
 
-              _guardando
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _guardarMeta,
-                      child: const Text('Crear meta'),
-                    ),
+              BotonPrincipal(
+                cargando: _guardando,
+                texto: 'Crear meta',
+                alPresionar: _guardarMeta,
+              ),
             ],
           ),
         ),

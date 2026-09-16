@@ -10,6 +10,7 @@ import 'screens/goals/goals_screen.dart';
 import 'screens/chatbot/chatbot_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'ux/theme.dart';
+import 'ux/widgets/nav_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,29 +93,10 @@ class _EstadoPantallaNavegacionPrincipal
   Widget build(BuildContext contexto) {
     return Scaffold(
       body: _pantallas[_indiceSeleccionado],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _indiceSeleccionado,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(contexto).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            label: 'Transacciones',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Metas'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.smart_toy),
-            label: 'Chatbot',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-        ],
-        onTap: (indice) {
-          setState(() {
-            _indiceSeleccionado = indice;
-          });
-        },
+      bottomNavigationBar: BarraNavegacionInferior(
+        indiceSeleccionado: _indiceSeleccionado,
+        alCambiarIndice: (indice) =>
+            setState(() => _indiceSeleccionado = indice),
       ),
     );
   }
