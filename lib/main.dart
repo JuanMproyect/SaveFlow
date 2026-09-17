@@ -82,12 +82,14 @@ class _EstadoPantallaNavegacionPrincipal
     extends State<PantallaNavegacionPrincipal> {
   int _indiceSeleccionado = 0;
 
-  final List<Widget> _pantallas = const [
-    PantallaDashboard(),
-    PantallaListaTransacciones(),
-    PantallaMetas(),
-    PantallaChatbot(),
-    PantallaPerfil(),
+  List<Widget> get _pantallas => [
+    PantallaDashboard(
+      alTocarVerTodas: () => setState(() => _indiceSeleccionado = 1),
+    ),
+    const PantallaListaTransacciones(),
+    const PantallaMetas(),
+    const PantallaChatbot(),
+    const PantallaPerfil(),
   ];
 
   @override
