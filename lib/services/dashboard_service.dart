@@ -40,4 +40,17 @@ class ServicioDashboard {
           transaccion.fecha.month == ahora.month;
     }).toList();
   }
+
+  List<TransaccionModelo> filtrarMesAnterior(
+    List<TransaccionModelo> transacciones,
+  ) {
+    final ahora = DateTime.now();
+    final mesAnterior = ahora.month == 1 ? 12 : ahora.month - 1;
+    final anioDelMesAnterior = ahora.month == 1 ? ahora.year - 1 : ahora.year;
+
+    return transacciones.where((transaccion) {
+      return transaccion.fecha.year == anioDelMesAnterior &&
+          transaccion.fecha.month == mesAnterior;
+    }).toList();
+  }
 }
