@@ -86,7 +86,7 @@ class ServicioAutenticacion {
     return null;
   }
 
-  // Traduce los códigos de error de Firebase a mensajes entendibles en español
+  //códigos de error de Firebase a mensajes
   String _traducirErrorFirebase(String codigo) {
     switch (codigo) {
       case 'email-already-in-use':
