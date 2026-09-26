@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/chat_message_model.dart';
 import '../../services/gemini_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/chat_history_service.dart';
 
 class PantallaChatbot extends StatefulWidget {
   const PantallaChatbot({super.key});
@@ -17,21 +18,9 @@ class _EstadoPantallaChatbot extends State<PantallaChatbot> {
 
   final ServicioGemini _servicioGemini = ServicioGemini();
   final ServicioAutenticacion _servicioAuth = ServicioAutenticacion();
+  final ServicioHistorialChat _servicioHistorial = ServicioHistorialChat();
 
-  final List<MensajeChatModelo> _mensajes = [];
-  bool _escribiendo = false; // true mientras el bot está "pensando"
-
-  @override
-  void initState() {
-    super.initState();
-    // Mensaje de bienvenida inicial, solo visual, no se envía a Gemini
-    _mensajes.add(MensajeChatModelo(
-      texto: '¡Hola! Soy tu asistente financiero de SaveFlow. '
-          'Pregúntame sobre tus gastos, ahorros o metas.',
-      esUsuario: false,
-      fecha: DateTime.now(),
-    ));
-  }
+  bool _escribiendo = false;
 
   @override
   void dispose() {
@@ -41,7 +30,6 @@ class _EstadoPantallaChatbot extends State<PantallaChatbot> {
   }
 
   void _desplazarAbajo() {
-    // Espera un frame para que el nuevo mensaje ya esté renderizado
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_controladorScroll.hasClients) {
         _controladorScroll.animateTo(
@@ -53,21 +41,23 @@ class _EstadoPantallaChatbot extends State<PantallaChatbot> {
     });
   }
 
-  Future<void> _enviarPregunta() async {
+  Future<void> _enviarPregunta(String idUsuario) async {
     final pregunta = _controladorMensaje.text.trim();
     if (pregunta.isEmpty || _escribiendo) return;
 
-    final idUsuario = FirebaseAuth.instance.currentUser!.uid;
+    _controladorMensaje.clear();
+    setState(() => _escribiendo = true);
 
-    setState(() {
-      _mensajes.add(MensajeChatModelo(
+    // Guarda el mensaje del usuario en Firestore (el StreamBuilder lo mostrará solo)
+    await _servicioHistorial.guardarMensaje(
+      MensajeChatModelo(
+        idMensaje: '',
+        idUsuario: idUsuario,
         texto: pregunta,
         esUsuario: true,
         fecha: DateTime.now(),
-      ));
-      _escribiendo = true;
-      _controladorMensaje.clear();
-    });
+      ),
+    );
     _desplazarAbajo();
 
     try {
@@ -81,56 +71,84 @@ class _EstadoPantallaChatbot extends State<PantallaChatbot> {
         monedaBase: monedaBase,
       );
 
-      if (!mounted) return;
-
-      setState(() {
-        _mensajes.add(MensajeChatModelo(
+      await _servicioHistorial.guardarMensaje(
+        MensajeChatModelo(
+          idMensaje: '',
+          idUsuario: idUsuario,
           texto: respuesta,
           esUsuario: false,
           fecha: DateTime.now(),
-        ));
-        _escribiendo = false;
-      });
-      _desplazarAbajo();
+        ),
+      );
     } catch (error) {
-      if (!mounted) return;
-
-      setState(() {
-        _mensajes.add(MensajeChatModelo(
+      await _servicioHistorial.guardarMensaje(
+        MensajeChatModelo(
+          idMensaje: '',
+          idUsuario: idUsuario,
           texto: 'Ocurrió un error al procesar tu pregunta. Intenta de nuevo.',
           esUsuario: false,
           fecha: DateTime.now(),
-        ));
-        _escribiendo = false;
-      });
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _escribiendo = false);
       _desplazarAbajo();
     }
   }
 
   @override
   Widget build(BuildContext contexto) {
+    final idUsuario = FirebaseAuth.instance.currentUser!.uid;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Asistente financiero')),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _controladorScroll,
-              padding: const EdgeInsets.all(16),
-              itemCount: _mensajes.length + (_escribiendo ? 1 : 0),
-              itemBuilder: (contexto, indice) {
-                // Último ítem = indicador de "escribiendo..." si está activo
-                if (indice == _mensajes.length) {
-                  return const _BurbujaEscribiendo();
+            child: StreamBuilder<List<MensajeChatModelo>>(
+              stream: _servicioHistorial.obtenerHistorial(idUsuario),
+              builder: (contexto, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-                return _BurbujaMensaje(mensaje: _mensajes[indice]);
+
+                final mensajes = snapshot.data ?? [];
+
+                // Mensaje de bienvenida solo si no hay historial aún
+                if (mensajes.isEmpty && !_escribiendo) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text(
+                        '¡Hola! Soy tu asistente financiero de SaveFlow.\n'
+                        'Pregúntame sobre tus gastos, ahorros o metas.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }
+
+                _desplazarAbajo();
+
+                return ListView.builder(
+                  controller: _controladorScroll,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: mensajes.length + (_escribiendo ? 1 : 0),
+                  itemBuilder: (contexto, indice) {
+                    if (indice == mensajes.length) {
+                      return const _BurbujaEscribiendo();
+                    }
+                    return _BurbujaMensaje(mensaje: mensajes[indice]);
+                  },
+                );
               },
             ),
           ),
           _CampoEntradaMensaje(
             controlador: _controladorMensaje,
             habilitado: !_escribiendo,
-            alEnviar: _enviarPregunta,
+            alEnviar: () => _enviarPregunta(idUsuario),
           ),
         ],
       ),
@@ -138,10 +156,8 @@ class _EstadoPantallaChatbot extends State<PantallaChatbot> {
   }
 }
 
-// ── Burbuja individual de mensaje (usuario o bot) ──────────────────────────
 class _BurbujaMensaje extends StatelessWidget {
   final MensajeChatModelo mensaje;
-
   const _BurbujaMensaje({required this.mensaje});
 
   @override
@@ -178,7 +194,6 @@ class _BurbujaMensaje extends StatelessWidget {
   }
 }
 
-// ── Indicador de "el bot está escribiendo" ─────────────────────────────────
 class _BurbujaEscribiendo extends StatelessWidget {
   const _BurbujaEscribiendo();
 
@@ -203,7 +218,6 @@ class _BurbujaEscribiendo extends StatelessWidget {
   }
 }
 
-// ── Campo de texto inferior para escribir la pregunta ──────────────────────
 class _CampoEntradaMensaje extends StatelessWidget {
   final TextEditingController controlador;
   final bool habilitado;
@@ -234,8 +248,10 @@ class _CampoEntradaMensaje extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 onSubmitted: (_) => alEnviar(),
                 textInputAction: TextInputAction.send,
