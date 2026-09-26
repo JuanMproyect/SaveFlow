@@ -19,12 +19,12 @@ class ServicioGemini {
 
   final FirebaseFirestore _baseDatos = FirebaseFirestore.instance;
 
-  // ── PASO 1: Construir el contexto financiero desde Firestore ──────────
+  //Construir el contexto financiero desde Firestore
   Future<ContextoFinancieroModelo> construirContexto(String idUsuario) async {
     final fechaLimite = DateTime.now().subtract(const Duration(days: 90));
 
-    // Traer transacciones del usuario (últimos 3 meses, filtrado en el cliente
-    // para evitar el problema de índice compuesto que ya conocemos)
+    //Traer transacciones del usuario (últimos 3 meses, filtrado en el cliente
+    //para evitar el problema de índice compuesto que ya conocemos)
     final snapshotTransacciones = await _baseDatos
         .collection('transactions')
         .where('userId', isEqualTo: idUsuario)
@@ -35,14 +35,14 @@ class ServicioGemini {
         .where((t) => t.fecha.isAfter(fechaLimite))
         .toList();
 
-    // Traer categorías para poder mostrar nombres, no IDs
+    //Traer categorías para poder mostrar nombres, no IDs
     final snapshotCategorias = await _baseDatos.collection('categories').get();
     final categorias = snapshotCategorias.docs
         .map((doc) => CategoriaModelo.desdeMapa(doc.id, doc.data()))
         .toList();
     final mapaCategorias = {for (var c in categorias) c.idCategoria: c};
 
-    // Calcular totales y gastos por categoría (con nombre, no ID)
+    //Calcular totales y gastos por categoría (con nombre, no ID)
     double totalIngresos = 0;
     double totalGastos = 0;
     final Map<String, double> gastosPorCategoria = {};
